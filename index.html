@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Tìm kiếm thiết bị</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Tìm kiếm thiết bị gần đúng</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -13,24 +13,14 @@
     h1 {
       color: #333;
     }
-    textarea, input {
+    input {
       width: 100%;
       max-width: 500px;
       padding: 10px;
       font-size: 16px;
-      margin-bottom: 10px;
+      margin-bottom: 20px;
       border-radius: 6px;
       border: 1px solid #ccc;
-    }
-    button {
-      padding: 10px;
-      font-size: 16px;
-      border: none;
-      background: #007bff;
-      color: white;
-      border-radius: 6px;
-      cursor: pointer;
-      margin-bottom: 10px;
     }
     ul {
       list-style: none;
@@ -48,13 +38,6 @@
 <body>
 
   <h1>Tìm kiếm thiết bị gần đúng</h1>
-
-  <!-- Vùng nhập văn bản -->
-  <textarea id="inputText" placeholder="Nhập hoặc dán văn bản vào đây..."></textarea>
-  <button onclick="tachChuoi()">Tách Chuỗi</button>
-  <ul id="ketQuaChuoi"></ul>
-
-  <!-- Ô tìm kiếm thiết bị -->
   <input type="text" id="searchBox" placeholder="Nhập tên thiết bị cần tìm..." />
   <ul id="ketQua"></ul>
 
@@ -65,7 +48,12 @@
     let danhSachThietBi = [];
 
     fetch('devices.json')
-      .then(response => response.json())
+      .then(response => {
+        if (!response.ok) {
+          throw new Error("Không thể tải devices.json");
+        }
+        return response.json();
+      })
       .then(data => {
         danhSachThietBi = data;
         fuse = new Fuse(danhSachThietBi, {
@@ -78,11 +66,11 @@
         document.getElementById("ketQua").innerHTML = "<li>Lỗi khi tải danh sách thiết bị.</li>";
       });
 
-    const searchBox = document.getElementById("searchBox");
+    const input = document.getElementById("searchBox");
     const ketQua = document.getElementById("ketQua");
 
-    searchBox.addEventListener("input", () => {
-      const tim = searchBox.value.trim();
+    input.addEventListener("input", () => {
+      const tim = input.value.trim();
       ketQua.innerHTML = "";
 
       if (tim === "" || !fuse) return;
@@ -100,28 +88,6 @@
         ketQua.appendChild(li);
       });
     });
-
-    function tachChuoi() {
-      const inputText = document.getElementById("inputText").value.trim();
-      const ketQuaChuoi = document.getElementById("ketQuaChuoi");
-      ketQuaChuoi.innerHTML = "";
-
-      if (inputText === "") return;
-
-      const chuoiTach = inputText.includes(":") ? inputText.split(":").map(str => str.trim()) : [inputText];
-
-      chuoiTach.forEach(item => {
-        const li = document.createElement("li");
-        li.textContent = item;
-        ketQuaChuoi.appendChild(li);
-      });
-
-      // Sau khi tách, nếu có 2 phần, tự động đặt phần sau vào ô tìm kiếm thiết bị
-      if (chuoiTach.length > 1) {
-        searchBox.value = chuoiTach[1];
-        searchBox.dispatchEvent(new Event("input")); // Kích hoạt tìm kiếm
-      }
-    }
   </script>
 
 </body>
