@@ -33,13 +33,6 @@
       border-radius: 4px;
       border: 1px solid #ddd;
     }
-    .split-result {
-      color: #007bff;
-      font-size: 15px;
-      margin-top: 2px;
-      padding-left: 10px;
-      font-style: italic;
-    }
   </style>
 </head>
 <body>
@@ -76,21 +69,6 @@
     const input = document.getElementById("searchBox");
     const ketQua = document.getElementById("ketQua");
 
-    /**
-     * Tách chuỗi tại dấu ":"
-     * @param {string} str
-     * @returns {Array} Mảng chứa 2 phần đã tách hoặc mảng 1 phần nếu không có ":"
-     */
-    function tachChuoi(str) {
-      const index = str.indexOf(":");
-      if (index !== -1) {
-        const phanTruoc = str.substring(0, index).trim();
-        const phanSau = str.substring(index + 1).trim();
-        return [phanTruoc, phanSau];
-      }
-      return [str];
-    }
-
     input.addEventListener("input", () => {
       const tim = input.value.trim();
       ketQua.innerHTML = "";
@@ -107,16 +85,6 @@
       ketQuaTim.forEach(item => {
         const li = document.createElement("li");
         li.textContent = item.item;
-
-        // Bổ sung phần tách chuỗi tại dấu ":" và hiển thị bên dưới
-        const tach = tachChuoi(item.item);
-        if (tach.length === 2) {
-          const splitDiv = document.createElement("div");
-          splitDiv.className = "split-result";
-          splitDiv.textContent = `Trước dấu ":" ➔ "${tach[0]}", Sau dấu ":" ➔ "${tach[1]}"`;
-          li.appendChild(splitDiv);
-        }
-
         ketQua.appendChild(li);
       });
     });
