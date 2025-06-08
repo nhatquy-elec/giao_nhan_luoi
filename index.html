@@ -1,93 +1,72 @@
 <!DOCTYPE html>
-<html lang="vi">
+<html>
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Tìm kiếm thiết bị gần đúng</title>
+  <meta charset="UTF-8">
+  <title>Tách chuỗi & Tìm kiếm gần đúng</title>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 30px;
-      background: #f4f4f4;
-    }
-    h1 {
-      color: #333;
-    }
-    input {
-      width: 100%;
-      max-width: 500px;
-      padding: 10px;
-      font-size: 16px;
-      margin-bottom: 20px;
-      border-radius: 6px;
-      border: 1px solid #ccc;
-    }
-    ul {
-      list-style: none;
-      padding: 0;
-    }
-    li {
-      background: white;
-      padding: 10px;
-      margin-bottom: 5px;
-      border-radius: 4px;
-      border: 1px solid #ddd;
-    }
+    body { font-family: Arial; padding: 20px; max-width: 700px; margin:auto; }
+    textarea, input { width: 100%; padding: 8px; margin-top: 10px; }
+    button { margin-top: 10px; padding: 8px 16px; font-size: 16px; }
+    #result, #searchResult { margin-top: 20px; font-weight: bold; white-space: pre-wrap; }
   </style>
+  <script src="https://cdn.jsdelivr.net/npm/fuse.js@6.6.2"></script>
 </head>
 <body>
 
-  <h1>Tìm kiếm thiết bị gần đúng</h1>
-  <input type="text" id="searchBox" placeholder="Nhập tên thiết bị cần tìm..." />
-  <ul id="ketQua"></ul>
+  <h2>Nhập chuỗi văn bản:</h2>
+  <textarea id="inputText" placeholder="Dán chuỗi văn bản vào đây..."></textarea>
+  <button onclick="tachChuoi()">Tách chuỗi tại dấu :</button>
 
-  <!-- Fuse.js -->
-  <script src="https://cdn.jsdelivr.net/npm/fuse.js@6.6.2"></script>
+  <div id="result"></div>
+
+  <h3>Tìm kiếm gần đúng:</h3>
+  <input type="text" id="searchText" placeholder="Nhập từ cần tìm...">
+  <button onclick="timKiemGanDung()">Tìm kiếm</button>
+
+  <div id="searchResult"></div>
+
   <script>
-    let fuse;
-    let danhSachThietBi = [];
+    function tachChuoi() {
+      const input = document.getElementById("inputText").value;
+      const index = input.indexOf(":");
+      let output = "";
 
-    fetch('devices.json')
-      .then(response => {
-        if (!response.ok) {
-          throw new Error("Không thể tải devices.json");
-        }
-        return response.json();
-      })
-      .then(data => {
-        danhSachThietBi = data;
-        fuse = new Fuse(danhSachThietBi, {
-          includeScore: true,
-          threshold: 0.4,
-        });
-      })
-      .catch(error => {
-        console.error("Lỗi khi tải danh sách thiết bị:", error);
-        document.getElementById("ketQua").innerHTML = "<li>Lỗi khi tải danh sách thiết bị.</li>";
-      });
+      if (index !== -1) {
+        const phan1 = input.slice(0, index).trim();
+        const phan2 = input.slice(index + 1).trim();
+        output = `Phần 1: "${phan1}"\nPhần 2: "${phan2}"`;
+      } else {
+        output = `Giữ nguyên: "${input.trim()}"`;
+      }
 
-    const input = document.getElementById("searchBox");
-    const ketQua = document.getElementById("ketQua");
+      document.getElementById("result").textContent = output;
+    }
 
-    input.addEventListener("input", () => {
-      const tim = input.value.trim();
-      ketQua.innerHTML = "";
+    function timKiemGanDung() {
+      const inputText = document.getElementById("inputText").value;
+      const searchText = document.getElementById("searchText").value;
 
-      if (tim === "" || !fuse) return;
-
-      const ketQuaTim = fuse.search(tim);
-
-      if (ketQuaTim.length === 0) {
-        ketQua.innerHTML = "<li>Không tìm thấy kết quả phù hợp.</li>";
+      if (!searchText || !inputText) {
+        document.getElementById("searchResult").textContent = "Vui lòng nhập cả văn bản và từ cần tìm.";
         return;
       }
 
-      ketQuaTim.forEach(item => {
-        const li = document.createElement("li");
-        li.textContent = item.item;
-        ketQua.appendChild(li);
-      });
-    });
+      const data = inputText.split(/\s+/).map(word => ({ word }));
+      const options = {
+        includeScore: true,
+        keys: ['word'],
+        threshold: 0.4  // mức độ gần đúng (0 = chính xác, 1 = rất mờ)
+      };
+      const fuse = new Fuse(data, options);
+      const result = fuse.search(searchText);
+
+      if (result.length > 0) {
+        const suggestions = result.map(r => r.item.word).join(", ");
+        document.getElementById("searchResult").textContent = `Kết quả gần đúng: ${suggestions}`;
+      } else {
+        document.getElementById("searchResult").textContent = "Không tìm thấy từ nào gần đúng.";
+      }
+    }
   </script>
 
 </body>
