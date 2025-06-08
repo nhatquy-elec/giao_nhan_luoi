@@ -3,74 +3,117 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Tìm kiếm thiết bị gần đúng</title>
+  <title>Trang Web 2 Chức Năng</title>
   <style>
     body {
       font-family: Arial, sans-serif;
       margin: 30px;
       background: #f4f4f4;
     }
-    h1 {
-      color: #333;
+    h2 {
+      margin-top: 40px;
+      color: #444;
     }
-    input {
+    textarea {
       width: 100%;
-      max-width: 500px;
+      max-width: 600px;
+      height: 100px;
       padding: 10px;
       font-size: 16px;
-      margin-bottom: 20px;
+      margin-bottom: 10px;
+    }
+    input, .output-box {
+      width: 100%;
+      max-width: 600px;
+      padding: 10px;
+      font-size: 16px;
+      margin-bottom: 10px;
       border-radius: 6px;
       border: 1px solid #ccc;
     }
+    button {
+      padding: 10px 20px;
+      margin-bottom: 20px;
+      font-size: 16px;
+      cursor: pointer;
+    }
     ul {
       list-style: none;
-      padding: 0;
+      padding-left: 0;
     }
     li {
-      background: white;
-      padding: 10px;
+      background: #fff;
       margin-bottom: 5px;
-      border-radius: 4px;
+      padding: 10px;
       border: 1px solid #ddd;
+      border-radius: 4px;
     }
   </style>
 </head>
 <body>
 
-  <h1>Tìm kiếm thiết bị gần đúng</h1>
-  <input type="text" id="searchBox" placeholder="Nhập tên thiết bị cần tìm..." />
+  <!-- MODULE 1: TÁCH CHUỖI -->
+  <h2>Module 1 – Tách chuỗi theo dấu ":" sau dấu ";"</h2>
+  <textarea id="inputChuoi" placeholder="Nhập chuỗi văn bản..."></textarea>
+  <br/>
+  <button onclick="tachChuoi()">Tách chuỗi</button>
+  <div>
+    <label>Phạm vi:</label>
+    <div id="phamvi" class="output-box"></div>
+    <label>Công tác:</label>
+    <div id="congtac" class="output-box"></div>
+  </div>
+
+  <!-- MODULE 2: TÌM KIẾM GẦN ĐÚNG -->
+  <h2>Module 2 – Tìm kiếm thiết bị gần đúng</h2>
+  <textarea id="searchBox" maxlength="40" placeholder="Nhập từ khóa tìm kiếm (tối đa 40 ký tự)..."></textarea>
   <ul id="ketQua"></ul>
 
   <!-- Fuse.js -->
   <script src="https://cdn.jsdelivr.net/npm/fuse.js@6.6.2"></script>
   <script>
-    let fuse;
-    let danhSachThietBi = [];
+    // --- MODULE 1 ---
+    function tachChuoi() {
+      const input = document.getElementById("inputChuoi").value;
+      const phamviEl = document.getElementById("phamvi");
+      const congtacEl = document.getElementById("congtac");
 
+      // Tìm vị trí dấu ":" xuất hiện đầu tiên SAU dấu ";"
+      const viTriChamPhay = input.indexOf(";");
+      const sauChamPhay = input.slice(viTriChamPhay + 1);
+      const viTriHaiCham = sauChamPhay.indexOf(":");
+
+      if (viTriChamPhay === -1 || viTriHaiCham === -1) {
+        phamviEl.textContent = "(Không tìm thấy dấu ';' hoặc ':')";
+        congtacEl.textContent = "";
+        return;
+      }
+
+      const fullViTriHaiCham = viTriChamPhay + 1 + viTriHaiCham;
+
+      const phamvi = input.slice(0, fullViTriHaiCham).trim();
+      const congtac = input.slice(fullViTriHaiCham + 1).trim();
+
+      phamviEl.textContent = phamvi;
+      congtacEl.textContent = congtac;
+    }
+
+    // --- MODULE 2 ---
+    let fuse;
     fetch('devices.json')
-      .then(response => {
-        if (!response.ok) {
-          throw new Error("Không thể tải devices.json");
-        }
-        return response.json();
-      })
+      .then(response => response.json())
       .then(data => {
-        danhSachThietBi = data;
-        fuse = new Fuse(danhSachThietBi, {
+        fuse = new Fuse(data, {
           includeScore: true,
           threshold: 0.4,
         });
-      })
-      .catch(error => {
-        console.error("Lỗi khi tải danh sách thiết bị:", error);
-        document.getElementById("ketQua").innerHTML = "<li>Lỗi khi tải danh sách thiết bị.</li>";
       });
 
-    const input = document.getElementById("searchBox");
+    const searchBox = document.getElementById("searchBox");
     const ketQua = document.getElementById("ketQua");
 
-    input.addEventListener("input", () => {
-      const tim = input.value.trim();
+    searchBox.addEventListener("input", () => {
+      const tim = searchBox.value.trim();
       ketQua.innerHTML = "";
 
       if (tim === "" || !fuse) return;
