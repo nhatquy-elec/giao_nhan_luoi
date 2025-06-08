@@ -1,39 +1,94 @@
-<script src="https://cdn.jsdelivr.net/npm/fuse.js@6.6.2"></script>
-<script>
-  let fuse;
-  let danhSachThietBi = [];
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Tìm kiếm thiết bị gần đúng</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 30px;
+      background: #f4f4f4;
+    }
+    h1 {
+      color: #333;
+    }
+    input {
+      width: 100%;
+      max-width: 500px;
+      padding: 10px;
+      font-size: 16px;
+      margin-bottom: 20px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+    }
+    ul {
+      list-style: none;
+      padding: 0;
+    }
+    li {
+      background: white;
+      padding: 10px;
+      margin-bottom: 5px;
+      border-radius: 4px;
+      border: 1px solid #ddd;
+    }
+  </style>
+</head>
+<body>
 
-  // Gọi fetch để tải dữ liệu JSON từ file devices.json
-  fetch('devices.json')
-    .then(response => response.json())
-    .then(data => {
-      danhSachThietBi = data;
-      fuse = new Fuse(danhSachThietBi, {
-        includeScore: true,
-        threshold: 0.4,
+  <h1>Tìm kiếm thiết bị gần đúng</h1>
+  <input type="text" id="searchBox" placeholder="Nhập tên thiết bị cần tìm..." />
+  <ul id="ketQua"></ul>
+
+  <!-- Fuse.js -->
+  <script src="https://cdn.jsdelivr.net/npm/fuse.js@6.6.2"></script>
+  <script>
+    let fuse;
+    let danhSachThietBi = [];
+
+    fetch('devices.json')
+      .then(response => {
+        if (!response.ok) {
+          throw new Error("Không thể tải devices.json");
+        }
+        return response.json();
+      })
+      .then(data => {
+        danhSachThietBi = data;
+        fuse = new Fuse(danhSachThietBi, {
+          includeScore: true,
+          threshold: 0.4,
+        });
+      })
+      .catch(error => {
+        console.error("Lỗi khi tải danh sách thiết bị:", error);
+        document.getElementById("ketQua").innerHTML = "<li>Lỗi khi tải danh sách thiết bị.</li>";
+      });
+
+    const input = document.getElementById("searchBox");
+    const ketQua = document.getElementById("ketQua");
+
+    input.addEventListener("input", () => {
+      const tim = input.value.trim();
+      ketQua.innerHTML = "";
+
+      if (tim === "" || !fuse) return;
+
+      const ketQuaTim = fuse.search(tim);
+
+      if (ketQuaTim.length === 0) {
+        ketQua.innerHTML = "<li>Không tìm thấy kết quả phù hợp.</li>";
+        return;
+      }
+
+      ketQuaTim.forEach(item => {
+        const li = document.createElement("li");
+        li.textContent = item.item;
+        ketQua.appendChild(li);
       });
     });
+  </script>
 
-  const input = document.getElementById("searchBox");
-  const ketQua = document.getElementById("ketQua");
-
-  input.addEventListener("input", () => {
-    const tim = input.value.trim();
-    ketQua.innerHTML = "";
-
-    if (tim === "" || !fuse) return;
-
-    const ketQuaTim = fuse.search(tim);
-
-    if (ketQuaTim.length === 0) {
-      ketQua.innerHTML = "<li>Không tìm thấy kết quả phù hợp.</li>";
-      return;
-    }
-
-    ketQuaTim.forEach(item => {
-      const li = document.createElement("li");
-      li.textContent = item.item;
-      ketQua.appendChild(li);
-    });
-  });
-</script>
+</body>
+</html>
